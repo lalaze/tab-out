@@ -1,3 +1,7 @@
+importScripts('bridge.js');
+
+const glanceBridge = createGlanceBridge(chrome);
+
 /**
  * background.js — Service Worker for Badge Updates
  *
@@ -85,6 +89,19 @@ chrome.tabs.onRemoved.addListener(() => {
 // Update badge when a tab's URL changes (e.g. navigating to/from chrome://)
 chrome.tabs.onUpdated.addListener(() => {
   updateBadge();
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || message.source !== 'glance-tab-out-content') return false;
+
+  glanceBridge.handle(message)
+    .then((data) => sendResponse({ ok: true, data }))
+    .catch((error) => sendResponse({
+      ok: false,
+      error: error && error.message ? error.message : String(error),
+    }));
+
+  return true;
 });
 
 // ─── Initial run ─────────────────────────────────────────────────────────────

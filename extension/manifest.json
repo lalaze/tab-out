@@ -7,14 +7,16 @@
   "host_permissions": [
     "http://100.96.195.115/*",
     "http://localhost/*",
-    "http://127.0.0.1/*"
+    "http://127.0.0.1/*",
+    "https://home.lalaze.com/*"
   ],
   "content_scripts": [
     {
       "matches": [
         "http://100.96.195.115/*",
         "http://localhost/*",
-        "http://127.0.0.1/*"
+        "http://127.0.0.1/*",
+        "https://home.lalaze.com/*"
       ],
       "js": ["glance-content.js"],
       "run_at": "document_start"

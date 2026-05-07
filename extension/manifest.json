@@ -3,7 +3,7 @@
   "name": "Tab Out",
   "version": "1.0.0",
   "description": "Keep tabs on your tabs. New tab page that groups your open tabs by domain and lets you close them with style.",
-  "permissions": ["tabs", "activeTab", "storage", "windows", "processes"],
+  "permissions": ["tabs", "activeTab", "storage", "windows"],
   "host_permissions": [
     "http://100.96.195.115/*",
     "https://100.96.195.115/*",

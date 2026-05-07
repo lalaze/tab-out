@@ -69,57 +69,6 @@
     });
   }
 
-  async function getProcessIdForTab(chromeApi, tabId) {
-    if (!chromeApi.processes || !chromeApi.processes.getProcessIdForTab) return null;
-
-    try {
-      return await callChrome(chromeApi, chromeApi.processes.getProcessIdForTab, [tabId]);
-    } catch {
-      return null;
-    }
-  }
-
-  async function getProcessInfo(chromeApi, processIds) {
-    if (!chromeApi.processes || !chromeApi.processes.getProcessInfo || processIds.length === 0) {
-      return {};
-    }
-
-    try {
-      return await callChrome(chromeApi, chromeApi.processes.getProcessInfo, [processIds, true]);
-    } catch {
-      return {};
-    }
-  }
-
-  async function getTabMemory(chromeApi, tabs) {
-    const pairs = [];
-
-    for (const tab of tabs) {
-      if (!Number.isInteger(tab.id)) continue;
-      const processId = await getProcessIdForTab(chromeApi, tab.id);
-      if (processId !== null && processId !== undefined) pairs.push([tab.id, processId]);
-    }
-
-    const processIds = [...new Set(pairs.map(([, processId]) => processId))];
-    const processInfo = await getProcessInfo(chromeApi, processIds);
-    const memoryByTabId = new Map();
-
-    for (const [tabId, processId] of pairs) {
-      const info = processInfo[String(processId)] || processInfo[processId];
-      if (!info) continue;
-
-      memoryByTabId.set(tabId, {
-        processId,
-        privateMemory: info.privateMemory ?? null,
-        jsMemoryAllocated: info.jsMemoryAllocated ?? null,
-        jsMemoryUsed: info.jsMemoryUsed ?? null,
-        sharedProcessTabIds: Array.isArray(info.tabs) ? info.tabs : [],
-      });
-    }
-
-    return memoryByTabId;
-  }
-
   async function getTabs(chromeApi) {
     const tabs = await chromeApi.tabs.query({});
     const duplicateCounts = new Map();
@@ -129,7 +78,6 @@
       duplicateCounts.set(tab.url, (duplicateCounts.get(tab.url) || 0) + 1);
     }
 
-    const memoryByTabId = await getTabMemory(chromeApi, tabs);
     const normalizedTabs = tabs.map((tab) => {
       const url = tab.url || '';
 
@@ -147,7 +95,6 @@
         domain: domainForUrl(url),
         duplicateCount: duplicateCounts.get(url) || 1,
         isInternal: isInternalUrl(url),
-        memory: memoryByTabId.get(tab.id) || null,
       };
     });
 
@@ -157,7 +104,6 @@
         totalTabs: tabs.length,
         webTabs: normalizedTabs.filter((tab) => !tab.isInternal).length,
         duplicateUrls: [...duplicateCounts.values()].filter((count) => count > 1).length,
-        hasProcessMemory: memoryByTabId.size > 0,
       },
     };
   }

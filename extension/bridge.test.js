@@ -48,41 +48,6 @@ test('getTabs returns normalized tab snapshots with duplicate and domain metadat
   assert.equal(result.tabs[3].isInternal, true);
 });
 
-test('getTabs includes process memory when chrome.processes uses callbacks', async () => {
-  const chromeStub = createChromeStub([
-    { id: 1, windowId: 10, index: 0, active: false, title: 'Alpha', url: 'https://example.com/a' },
-  ]);
-  chromeStub.processes = {
-    getProcessIdForTab(tabId, callback) {
-      assert.equal(tabId, 1);
-      callback(9001);
-    },
-    getProcessInfo(processIds, includeMemory, callback) {
-      assert.deepEqual(processIds, [9001]);
-      assert.equal(includeMemory, true);
-      callback({
-        9001: {
-          privateMemory: 104857600,
-          jsMemoryAllocated: 2097152,
-          jsMemoryUsed: 1048576,
-          tabs: [1],
-        },
-      });
-    },
-  };
-
-  const result = await createGlanceBridge(chromeStub).handle({ action: 'getTabs' });
-
-  assert.equal(result.stats.hasProcessMemory, true);
-  assert.deepEqual(result.tabs[0].memory, {
-    processId: 9001,
-    privateMemory: 104857600,
-    jsMemoryAllocated: 2097152,
-    jsMemoryUsed: 1048576,
-    sharedProcessTabIds: [1],
-  });
-});
-
 test('closeTabs validates ids and delegates to chrome.tabs.remove', async () => {
   const chromeStub = createChromeStub([]);
   const bridge = createGlanceBridge(chromeStub);

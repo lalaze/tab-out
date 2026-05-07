@@ -22,7 +22,6 @@
       "run_at": "document_start"
     }
   ],
-  "chrome_url_overrides": { "newtab": "index.html" },
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "Tab Out",
